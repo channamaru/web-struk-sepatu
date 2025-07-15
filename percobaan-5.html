@@ -1,0 +1,406 @@
+<!DOCTYPE html> 
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Struk Laundry</title>
+  <style>
+    body {
+      background: #f5f5f5;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .receipt {
+      background: #fff;
+      width: 300px;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+    }
+    .logo {
+      width: 120px;
+      height: 140px;
+      margin-right: 4px;
+    }
+    .store-name {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .store-address, .store-phone {
+      font-size: 12px;
+      margin-bottom: 1px;
+    }
+    hr {
+      border: none;
+      border-top: 1px dashed #000;
+      margin: 5px 0;
+    }
+    .details p, .additional p, .notice p, .agreement, .thanks {
+      font-size: 12px;
+      margin: 2px 0;
+    }
+    .totals p {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin: 2px 0;
+    }
+    .notice p {
+      text-align: left;
+    }
+    .agreement, .thanks {
+      text-align: center;
+      margin-top: 5px;
+    }
+    .btn {
+      font-size: 12px;
+      margin: 2px;
+      cursor: pointer;
+    }
+    .form-add input, .form-edit-item input, .form-edit-store input, .form-pay input, .form-edit-details input {
+      width: 95%;
+      font-size: 12px;
+      margin: 2px 0;
+    }
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+    }
+    .item-row p {
+      margin: 0;
+      font-size: 12px;
+    }
+    .item-name-qty {
+      flex: 1;
+    }
+    .item-subtotal {
+      flex: 0 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt" id="receipt">
+    <div class="header">
+      <img src="logo.png" alt="Logo Laundry" class="logo">
+      <div class="store-info">
+        <h1 class="store-name" id="store-name">PAPA MAMA LAUNDRY</h1>
+        <p class="store-address" id="store-address">J. Ginting No 83. Binjai</p>
+        <p class="store-phone" id="store-phone">Telp. 081362132469</p>
+      </div>
+    </div>
+    <hr>
+    <div class="details">
+      <p>Order ID: <span id="order-id"></span></p>
+      <p>Pelanggan: <span id="customer"></span></p>
+      <p>No Telp/No Wa: <span id="cashier"></span></p>
+      <p>Tgl Pesan: <span id="order-date"></span></p>
+      <p>Est Selesai: <span id="est-finish"></span></p>
+    </div>
+    <hr>
+    <div class="item-list" id="item-list"></div>
+    <hr>
+    <div class="totals">
+      <p>Total Harga <span id="total">0</span></p>
+      <p>Dibayar <span id="paid">0</span></p>
+      <p>Kurang/Kembali <span id="due">0</span></p>
+      <p>Status: <span id="status"></span></p>
+    </div>
+    <hr>
+    <div class="additional">
+      <p>Item: <span id="total-items">0 Item (0 Layanan)</span></p>
+      <p>Keterangan: <span id="parfum">Terbaik</span></p>
+      <p>Catatan: <span id="catatan">Tidak ada</span></p>
+    </div>
+    <hr>
+    <div class="notice">
+      <p>PERHATIAN :</p>
+      <p>1. Pengambilan Pakaian Harus disertai Nota</p>
+      <p>2. Setiap pelanggan yang menerima nota ini berarti telah membaca dan memahami semua peraturan,syarat dan ketentuan yang berlaku di leng cuci sepatu</p>
+    </div>
+    <p class="thanks">MAMPIR LAGI KE LENG CUCI SEPATU</p>
+    <p class="thanks">Terima kasih</p>
+    <hr>
+
+    <div class="form-add">
+      <h4>Tambah Item</h4>
+      <input type="text" id="new-name" placeholder="Nama Item">
+      <input type="number" id="new-qty" placeholder="Jumlah" value="1">
+      <input type="number" id="new-price" placeholder="Harga per item">
+      <button onclick="addItem()" class="btn">Tambah</button>
+    </div>
+
+    <div class="form-pay">
+      <h4>Bayar</h4>
+      <input type="number" id="pay-amount" placeholder="Masukkan nominal bayar">
+      <button onclick="pay()" class="btn">Bayar</button>
+    </div>
+
+    <div class="form-edit-item" id="edit-form" style="display:none;">
+      <h4>Edit Item</h4>
+      <input type="text" id="edit-item-name">
+      <input type="number" id="edit-item-qty">
+      <input type="number" id="edit-item-price">
+      <button onclick="saveEditItem()" class="btn">Simpan</button>
+      <button onclick="cancelEdit()" class="btn">Batal</button>
+    </div>
+
+    <div class="form-edit-details">
+      <h4>Edit Detail Struk</h4>
+      <input type="text" id="edit-customer" placeholder="Pelanggan">
+      <input type="text" id="edit-cashier" placeholder="No Telp/No Wa">
+      <input type="text" id="edit-order-date" placeholder="Tgl Pesan">
+      <input type="text" id="edit-est-finish" placeholder="Est Selesai">
+      <input type="text" id="edit-parfum" placeholder="Keterangan">
+      <input type="text" id="edit-catatan" placeholder="Catatan">
+      <input type="text" id="edit-status" placeholder="Status (Lunas/Belum Lunas)">
+      <button onclick="editDetails()" class="btn">Simpan</button>
+    </div>
+
+    <div class="form-edit-store">
+      <h4>Edit Data Toko</h4>
+      <input type="text" id="edit-name" placeholder="Nama Toko">
+      <input type="text" id="edit-address" placeholder="Alamat">
+      <input type="text" id="edit-phone" placeholder="Telp">
+      <button onclick="editStore()" class="btn">Simpan</button>
+    </div>
+
+    <div style="text-align:center; margin-top:5px;">
+      <button onclick="printReceipt()" class="btn">Cetak</button>
+      <button onclick="exportPDF()" class="btn">Export PDF</button>
+      <button onclick="clearItems()" class="btn">Hapus Semua</button>
+    </div>
+  </div>
+
+  <!-- Menggunakan CDN untuk jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    let items = JSON.parse(localStorage.getItem('items')) || [];
+    let store = JSON.parse(localStorage.getItem('store')) || {
+      name: 'PAPA MAMA LAUNDRY',
+      address: 'J. Ginting No 83. Binjai',
+      phone: 'Telp. 081362132469'
+    };
+    let paid = parseInt(localStorage.getItem('paid')) || 0;
+    let editingIndex = null;
+    let parfum = 'Terbaik';
+    let catatan = 'Tidak ada';
+    let status = '';
+
+    function generateOrderID() {
+      return 'TRX/' + Date.now().toString().slice(-6) + '/' +
+             Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    }
+
+    function initReceipt() {
+      document.getElementById('order-id').innerText = generateOrderID();
+      document.getElementById('customer').innerText = '';
+      document.getElementById('cashier').innerText = '';
+      document.getElementById('order-date').innerText = '';
+      document.getElementById('est-finish').innerText = '';
+      document.getElementById('parfum').innerText = parfum;
+      document.getElementById('catatan').innerText = catatan;
+      document.getElementById('status').innerText = status;
+      renderItems();
+      renderStore();
+    }
+
+    function renderStore() {
+      document.getElementById('store-name').innerText = store.name;
+      document.getElementById('store-address').innerText = store.address;
+      document.getElementById('store-phone').innerText = store.phone;
+    }
+
+    function renderItems() {
+      const list = document.getElementById('item-list');
+      list.innerHTML = '';
+      let total = 0;
+      items.forEach((item, i) => {
+        const subtotal = item.qty * item.price;
+        total += subtotal;
+        list.innerHTML += `
+          <div class="item-row">
+            <div class="item-name-qty">
+              <p>${item.name} - ${item.qty} x ${item.price.toLocaleString('id-ID', {style:'currency',currency:'IDR'})}</p>
+            </div>
+            <div class="item-subtotal">
+              <p>${subtotal.toLocaleString('id-ID', {style:'currency',currency:'IDR'})}</p>
+            </div>
+            <button class="btn" onclick="editItem(${i})">Edit</button>
+            <button class="btn" onclick="deleteItem(${i})">Hapus</button>
+          </div>`;
+      });
+      document.getElementById('total').innerText =
+        total.toLocaleString('id-ID', {style:'currency',currency:'IDR'});
+      document.getElementById('paid').innerText =
+        paid.toLocaleString('id-ID', {style:'currency',currency:'IDR'});
+      const due = paid - total;
+      document.getElementById('due').innerText =
+        due.toLocaleString('id-ID', {style:'currency',currency:'IDR'});
+      document.getElementById('total-items').innerText =
+        `${items.length} Item (${items.length} Layanan)`;
+      
+      status = due >= 0 ? 'Lunas' : 'Belum Lunas';
+      document.getElementById('status').innerText = status;
+      
+      localStorage.setItem('items', JSON.stringify(items));
+    }
+
+    function addItem() {
+      const name  = document.getElementById('new-name').value.trim();
+      const qty   = parseFloat(document.getElementById('new-qty').value);
+      const price = parseInt(document.getElementById('new-price').value);
+      if (name && qty && price) {
+        items.push({name, qty, price});
+        renderItems();
+        document.getElementById('new-name').value = '';
+        document.getElementById('new-qty').value = 1;
+        document.getElementById('new-price').value = '';
+      }
+    }
+
+    function pay() {
+      const amount = parseInt(document.getElementById('pay-amount').value) || 0;
+      paid = amount; // Mengizinkan pembayaran parsial
+      localStorage.setItem('paid', paid);
+      renderItems();
+      document.getElementById('pay-amount').value = '';
+    }
+
+    function editItem(i) {
+      editingIndex = i;
+      document.getElementById('edit-item-name').value  = items[i].name;
+      document.getElementById('edit-item-qty').value   = items[i].qty;
+      document.getElementById('edit-item-price').value = items[i].price;
+      document.getElementById('edit-form').style.display = 'block';
+    }
+
+    function saveEditItem() {
+      const name  = document.getElementById('edit-item-name').value.trim();
+      const qty   = parseFloat(document.getElementById('edit-item-qty').value);
+      const price = parseInt(document.getElementById('edit-item-price').value);
+      if (name && qty && price) {
+        items[editingIndex] = {name, qty, price};
+        localStorage.setItem('items', JSON.stringify(items)); // Diperbaiki
+        renderItems();
+        cancelEdit();
+      }
+    }
+
+    function cancelEdit() {
+      editingIndex = null;
+      document.getElementById('edit-form').style.display = 'none';
+    }
+
+    function deleteItem(i) {
+      if (confirm('Hapus item ini?')) {
+        items.splice(i, 1);
+        renderItems();
+      }
+    }
+
+    function clearItems() {
+      if (confirm('Hapus semua item?')) {
+        items = [];
+        paid  = 0;
+        localStorage.removeItem('paid'); // Diperbaiki
+        localStorage.setItem('items', JSON.stringify(items));
+        renderItems();
+        document.getElementById('customer').innerText   = '';
+        document.getElementById('cashier').innerText   = '';
+        document.getElementById('order-date').innerText = '';
+        document.getElementById('est-finish').innerText= '';
+        document.getElementById('order-id').innerText  = generateOrderID();
+        document.getElementById('status').innerText = '';
+      }
+    }
+
+    function editStore() {
+      const name    = document.getElementById('edit-name').value.trim();
+      const address = document.getElementById('edit-address').value.trim();
+      const phone   = document.getElementById('edit-phone').value.trim();
+      if (name && address && phone) {
+        store = {name, address, phone};
+        localStorage.setItem('store', JSON.stringify(store));
+        renderStore();
+      }
+    }
+
+    function editDetails() {
+      const customer  = document.getElementById('edit-customer').value.trim();
+      const cashier   = document.getElementById('edit-cashier').value.trim();
+      const orderDate = document.getElementById('edit-order-date').value.trim();
+      const estFinish = document.getElementById('edit-est-finish').value.trim();
+      const parfumInput = document.getElementById('edit-parfum').value.trim();
+      const catatanInput = document.getElementById('edit-catatan').value.trim();
+      const statusInput = document.getElementById('edit-status').value.trim();
+      if (customer)  document.getElementById('customer').innerText = customer;
+      if (cashier)   document.getElementById('cashier').innerText  = cashier;
+      if (orderDate) document.getElementById('order-date').innerText = orderDate;
+      if (estFinish) document.getElementById('est-finish').innerText = estFinish;
+      if (parfumInput) {
+        parfum = parfumInput;
+        document.getElementById('parfum').innerText = parfum;
+      }
+      if (catatanInput) {
+        catatan = catatanInput;
+        document.getElementById('catatan').innerText = catatan;
+      }
+      if (statusInput) {
+        status = statusInput;
+        document.getElementById('status').innerText = status;
+      }
+    }
+
+    function printReceipt() {
+      window.print();
+    }
+
+    function exportPDF() {
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF) {
+        console.error('jsPDF tidak ditemukan!');
+        return;
+      }
+      const doc = new jsPDF();
+
+      const forms = document.querySelectorAll('.form-add, .form-pay, .form-edit-item, .form-edit-store, .form-edit-details, .btn');
+      forms.forEach(f => f.style.display = 'none');
+
+      const receipt = document.getElementById('receipt');
+      if (!receipt) {
+        console.error('Elemen #receipt tidak ditemukan!');
+        return;
+      }
+      const receiptClone = receipt.cloneNode(true);
+
+      const removed = receiptClone.querySelectorAll('.form-add, .form-pay, .form-edit-item, .form-edit-store, .form-edit-details, .btn');
+      removed.forEach(f => f.remove());
+
+      receiptClone.style.position = 'fixed';
+      receiptClone.style.top = '-10000px';
+      document.body.appendChild(receiptClone);
+
+      setTimeout(() => {
+        doc.html(receiptClone, {
+          callback: function (doc) {
+            doc.save('struk.pdf');
+            receiptClone.remove();
+            forms.forEach(f => f.style.display = '');
+          },
+          x: 10,
+          y: 10
+        });
+      }, 100);
+    }
+
+    window.onload = initReceipt;
+  </script>
+</body>
+</html>
